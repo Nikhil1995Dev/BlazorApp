@@ -16,11 +16,16 @@
 
                         <div class="card" style="color: black; border-radius: 35px;background-color:antiquewhite">
                             <div class="card-body p-4">
-
+                                <MudPopover Open="@_isOpen" Fixed="true" Class="px-4 pt-4">
+    <div class="d-flex flex-column">
+        <MudTextField InputType="InputType.Text" @bind-Value="q"></MudTextField>
+        <MudButton OnClick="async()=>await AddLocation()" Class="ml-auto mr-n3 mb-1" Color="Color.Error">Add</MudButton>
+    </div>
+</MudPopover>
                                 <div class="d-flex">
-                                    <h6 class="flex-grow-1">@weatherData.location.name &nbsp;<MudIconButton Color="Color.Info" Icon="@Icons.Outlined.AddLocation" Size="Size.Medium" Style="padding:0px" ></MudIconButton></h6>
+                                    <h6 class="flex-grow-1">@weatherData.location.name &nbsp;<MudIconButton Color="Color.Info" Icon="@Icons.Outlined.AddLocation" Size="Size.Medium" Style="padding:0px" OnClick="@ToggleOpen"></MudIconButton></h6>
                                     <h6> @Convert.ToDateTime(weatherData.current.last_updated).ToShortTimeString() 
-                                        <MudIconButton Color="Color.Info" Icon="@Icons.Filled.Refresh" Size="Size.Medium" Style="padding:0px" OnClick="async()=>await GetDataAsync(currentPosition)"></MudIconButton></h6>
+                                        <MudIconButton Color="Color.Info" Icon="@Icons.Filled.Refresh" Size="Size.Medium" Style="padding:0px" OnClick="async()=>await GetDataAsync()"></MudIconButton></h6>
                                 </div>
 
                                 <div class="d-flex flex-column text-center mt-5 mb-4">
@@ -52,11 +57,16 @@
             </div>
         </section>
     }
+    else
+    {
+        <MudText> No Records</MudText>
+    }
 }
 else
 {
     <MudProgressLinear Color="Color.Primary" Indeterminate="true" Class="my-7" />
 }
+
 @code {
 
     [Required]
@@ -67,6 +77,21 @@ else
     private GeolocationPosition currentPosition;
     private WindowNavigatorGeolocation geolocationWrapper;
 
+    public bool _isOpen;
+
+    public void ToggleOpen()
+    {
+        if (_isOpen)
+            _isOpen = false;
+        else
+            _isOpen = true;
+    }
+    public async Task  AddLocation()
+    {
+        _isOpen = false;
+        await  GetDataAsync();
+
+    }
     protected override async Task OnInitializedAsync()
     {
         var window = await jsRuntime.Window();
@@ -74,17 +99,22 @@ else
         geolocationWrapper = navigator.Geolocation;
         await GetGeolocationAsync();
     }
-    protected  async Task GetDataAsync(GeolocationPosition position)
+    protected  async Task GetDataAsync()
     {
 
         HttpClient httpClient = new HttpClient();
         httpClient.BaseAddress = new Uri("http://api.weatherapi.com/v1");
         sholoader=true;
-        var res=await	httpClient.GetAsync($"https://api.weatherapi.com/v1/current.json?key=08d6f59ce03c4c9aaa0163507223007&q={position.Coords.Latitude},{position.Coords.Longitude}&aqi=no");
+        var res=await	httpClient.GetAsync($"https://api.weatherapi.com/v1/current.json?key=08d6f59ce03c4c9aaa0163507223007&q={q}&aqi=no");
         if(res.IsSuccessStatusCode)
         {
             sholoader = false;
             weatherData =await res.Content.ReadFromJsonAsync<WeatherDataResponse>();
+        }
+        else
+        {
+             sholoader = false;
+            weatherData = null;
         }
 
     }
@@ -96,6 +126,7 @@ else
             MaximumAgeTimeSpan = TimeSpan.FromHours(1),
             TimeoutTimeSpan = TimeSpan.FromMinutes(1)
         })).Location;
-        await GetDataAsync(currentPosition);
+        q = currentPosition.Coords.Latitude + "," + currentPosition.Coords.Longitude;
+        await GetDataAsync();
     }
 }
