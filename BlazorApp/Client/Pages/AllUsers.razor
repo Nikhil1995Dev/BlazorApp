@@ -5,26 +5,33 @@
 <MudCard>
     <MudCardHeader><MudButton Variant="Variant.Outlined" Href="/register" Color="Color.Primary">Add New</MudButton></MudCardHeader>
 
-<MudTable Items="@users" FixedHeader="@fixed_header" >
-    <HeaderContent>
-        <MudTh>Userid</MudTh>
-        <MudTh>Name</MudTh>
-        <MudTh>Email</MudTh>
-        <MudTh>Mobile</MudTh>
-        <MudTh>Address</MudTh>
-    </HeaderContent>
-    <RowTemplate>
-        <MudTd DataLabel="Nr">@context.Userid</MudTd>
-        <MudTd DataLabel="Sign">@context.Username</MudTd>
-        <MudTd DataLabel="Name">@context.Emailid</MudTd>
-        <MudTd DataLabel="Position">@context.MobileNo</MudTd>
-        <MudTd DataLabel="Molar mass">@context.Address</MudTd>
-    </RowTemplate>
-    
-    <PagerContent>
-        <MudTablePager PageSizeOptions="new int[]{10,20,50, 100}" />
-    </PagerContent>
-</MudTable>
+    @if (users.Count() > 0)
+    {
+        <MudTable Items="@users" FixedHeader="@fixed_header" >
+            <HeaderContent>
+                <MudTh>Userid</MudTh>
+                <MudTh>Name</MudTh>
+                <MudTh>Email</MudTh>
+                <MudTh>Mobile</MudTh>
+                <MudTh>Address</MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd DataLabel="Nr">@context.Userid</MudTd>
+                <MudTd DataLabel="Sign">@context.Username</MudTd>
+                <MudTd DataLabel="Name">@context.Emailid</MudTd>
+                <MudTd DataLabel="Position">@context.MobileNo</MudTd>
+                <MudTd DataLabel="Molar mass">@context.Address</MudTd>
+            </RowTemplate>
+
+            <PagerContent>
+                <MudTablePager PageSizeOptions="new int[]{10,20,50, 100}" />
+            </PagerContent>
+        </MudTable>
+    }
+    else
+    {
+        <MudProgressLinear Color="Color.Primary" Indeterminate="true" Class="my-7" />
+    }
 </MudCard>
 
 

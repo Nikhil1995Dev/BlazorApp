@@ -4,58 +4,65 @@
 @using BrowserInterop.Extensions
 @using BrowserInterop.Geolocation
 @inject IJSRuntime jsRuntime
-
-@if (weatherData != null)
+@if (!sholoader)
 {
-   
-   <section class="vh-100" style="background-color:lightgray">
-        <div class="container py-5 h-100">
+    if (weatherData != null)
+    {
+        <section class="vh-100" style="background-color:lightgray">
+            <div class="container py-5 h-100">
 
-            <div class="row d-flex justify-content-center align-items-center h-100">
-                <div class="col-md-8 col-lg-6 col-xl-4">
+                <div class="row d-flex justify-content-center align-items-center h-100">
+                    <div class="col-md-8 col-lg-6 col-xl-4">
 
-                    <div class="card" style="color: black; border-radius: 35px;background-color:antiquewhite">
-                        <div class="card-body p-4">
+                        <div class="card" style="color: black; border-radius: 35px;background-color:antiquewhite">
+                            <div class="card-body p-4">
 
-                            <div class="d-flex">
-                                <h6 class="flex-grow-1">@weatherData.location.name</h6>
-                                <h6> @Convert.ToDateTime(weatherData.current.last_updated).ToShortTimeString()</h6>
-                            </div>
-
-                            <div class="d-flex flex-column text-center mt-5 mb-4">
-                                <h6 class="display-4 mb-0 font-weight-bold"> @weatherData.current.temp_c °C </h6>
-                                <span class="small" style="color: #868B94">@weatherData.current.condition.text</span>
-                            </div>
-
-                            <div class="d-flex align-items-center">
-                                <div class="flex-grow-1" style="font-size: 1rem;">
-                                    <div><MudIcon Icon="@Icons.Outlined.Air" Color="Color.Primary"></MudIcon> <span class="ms-1"> @weatherData.current.wind_kph Km/h
-                                        </span></div>
-                                    <div><MudIcon Icon="@Icons.Outlined.WaterDrop" Color="Color.Primary"></MudIcon> <span class="ms-1">@weatherData.current.humidity% </span>
-                                    </div>
-                                    <div><MudIcon Icon="@Icons.Outlined.Cloud" Color="Color.Primary"></MudIcon> <span class="ms-1"> @weatherData.current.cloud%  </span>
-                                    </div>
+                                <div class="d-flex">
+                                    <h6 class="flex-grow-1">@weatherData.location.name &nbsp;<MudIconButton Color="Color.Info" Icon="@Icons.Outlined.AddLocation" Size="Size.Medium" Style="padding:0px" ></MudIconButton></h6>
+                                    <h6> @Convert.ToDateTime(weatherData.current.last_updated).ToShortTimeString() 
+                                        <MudIconButton Color="Color.Info" Icon="@Icons.Filled.Refresh" Size="Size.Medium" Style="padding:0px" OnClick="async()=>await GetDataAsync(currentPosition)"></MudIconButton></h6>
                                 </div>
-                                <div>
-                                    <img src="@weatherData.current.condition.icon"
+
+                                <div class="d-flex flex-column text-center mt-5 mb-4">
+                                    <h6 class="display-4 mb-0 font-weight-bold"> @weatherData.current.temp_c °C </h6>
+                                    <span class="small" style="color: #868B94">@weatherData.current.condition.text</span>
+                                </div>
+
+                                <div class="d-flex align-items-center">
+                                    <div class="flex-grow-1" style="font-size: 1rem;">
+                                        <div><MudIcon Icon="@Icons.Outlined.Air" Color="Color.Primary"></MudIcon> <span class="ms-1"> @weatherData.current.wind_kph Km/h
+                                            </span></div>
+                                        <div><MudIcon Icon="@Icons.Outlined.WaterDrop" Color="Color.Primary"></MudIcon> <span class="ms-1">@weatherData.current.humidity% </span>
+                                        </div>
+                                        <div><MudIcon Icon="@Icons.Outlined.Cloud" Color="Color.Primary"></MudIcon> <span class="ms-1"> @weatherData.current.cloud%  </span>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <img src="@weatherData.current.condition.icon"
                   width="100px">
+                                    </div>
                                 </div>
+
                             </div>
-
                         </div>
+
                     </div>
-
                 </div>
-            </div>
 
-        </div>
-    </section>
+            </div>
+        </section>
+    }
+}
+else
+{
+    <MudProgressLinear Color="Color.Primary" Indeterminate="true" Class="my-7" />
 }
 @code {
 
     [Required]
     private string q { get; set; }
     private string qi { get; set; }="no";
+    private bool sholoader { get; set; } = true;
     private WeatherDataResponse weatherData{ get; set; }
     private GeolocationPosition currentPosition;
     private WindowNavigatorGeolocation geolocationWrapper;
@@ -65,16 +72,18 @@
         var window = await jsRuntime.Window();
         var navigator = await window.Navigator();
         geolocationWrapper = navigator.Geolocation;
-       await GetGeolocationAsync();
+        await GetGeolocationAsync();
     }
     protected  async Task GetDataAsync(GeolocationPosition position)
     {
+
         HttpClient httpClient = new HttpClient();
         httpClient.BaseAddress = new Uri("http://api.weatherapi.com/v1");
-
+        sholoader=true;
         var res=await	httpClient.GetAsync($"https://api.weatherapi.com/v1/current.json?key=08d6f59ce03c4c9aaa0163507223007&q={position.Coords.Latitude},{position.Coords.Longitude}&aqi=no");
         if(res.IsSuccessStatusCode)
         {
+            sholoader = false;
             weatherData =await res.Content.ReadFromJsonAsync<WeatherDataResponse>();
         }
 
