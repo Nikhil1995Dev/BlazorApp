@@ -1,0 +1,92 @@
+﻿@page "/"
+@using BlazorApp.Shared.Models
+@using System.ComponentModel.DataAnnotations
+@using BrowserInterop.Extensions
+@using BrowserInterop.Geolocation
+@inject IJSRuntime jsRuntime
+
+@if (weatherData != null)
+{
+   
+   <section class="vh-100" style="background:url('images/IMG_20210916_140905.jpg');background-position:center">
+        <div class="container py-5 h-100">
+
+            <div class="row d-flex justify-content-center align-items-center h-100">
+                <div class="col-md-8 col-lg-6 col-xl-4">
+
+                    <div class="card" style="color: black; border-radius: 35px;background-color:antiquewhite">
+                        <div class="card-body p-4">
+
+                            <div class="d-flex">
+                                <h6 class="flex-grow-1">@weatherData.location.name</h6>
+                                <h6> @Convert.ToDateTime(weatherData.current.last_updated).ToShortTimeString()</h6>
+                            </div>
+
+                            <div class="d-flex flex-column text-center mt-5 mb-4">
+                                <h6 class="display-4 mb-0 font-weight-bold"> @weatherData.current.temp_c °C </h6>
+                                <span class="small" style="color: #868B94">@weatherData.current.condition.text</span>
+                            </div>
+
+                            <div class="d-flex align-items-center">
+                                <div class="flex-grow-1" style="font-size: 1rem;">
+                                    <div><MudIcon Icon="@Icons.Outlined.Air" Color="Color.Primary"></MudIcon> <span class="ms-1"> @weatherData.current.wind_kph Km/h
+                                        </span></div>
+                                    <div><MudIcon Icon="@Icons.Outlined.WaterDrop" Color="Color.Primary"></MudIcon> <span class="ms-1">@weatherData.current.humidity% </span>
+                                    </div>
+                                    <div><MudIcon Icon="@Icons.Outlined.Cloud" Color="Color.Primary"></MudIcon> <span class="ms-1"> @weatherData.current.cloud%  </span>
+                                    </div>
+                                </div>
+                                <div>
+                                    <img src="@weatherData.current.condition.icon"
+                  width="100px">
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+    </section>
+}
+@code {
+
+    [Required]
+    private string q { get; set; }
+    private string qi { get; set; }="no";
+    private WeatherDataResponse weatherData{ get; set; }
+    private GeolocationPosition currentPosition;
+    private WindowNavigatorGeolocation geolocationWrapper;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var window = await jsRuntime.Window();
+        var navigator = await window.Navigator();
+        geolocationWrapper = navigator.Geolocation;
+       await GetGeolocationAsync();
+    }
+    protected  async Task GetDataAsync(GeolocationPosition position)
+    {
+        HttpClient httpClient = new HttpClient();
+        httpClient.BaseAddress = new Uri("http://api.weatherapi.com/v1");
+
+        var res=await	httpClient.GetAsync($"https://api.weatherapi.com/v1/current.json?key=08d6f59ce03c4c9aaa0163507223007&q={position.Coords.Latitude},{position.Coords.Longitude}&aqi=no");
+        if(res.IsSuccessStatusCode)
+        {
+            weatherData =await res.Content.ReadFromJsonAsync<WeatherDataResponse>();
+        }
+
+    }
+    public async Task GetGeolocationAsync()
+    {
+        currentPosition = (await geolocationWrapper.GetCurrentPosition(new PositionOptions()
+        {
+            EnableHighAccuracy = true,
+            MaximumAgeTimeSpan = TimeSpan.FromHours(1),
+            TimeoutTimeSpan = TimeSpan.FromMinutes(1)
+        })).Location;
+        await GetDataAsync(currentPosition);
+    }
+}

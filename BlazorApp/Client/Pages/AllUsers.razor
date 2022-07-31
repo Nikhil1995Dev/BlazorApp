@@ -1,0 +1,40 @@
+﻿@page "/users"
+@using BlazorApp.Shared.Models
+@inject NavigationManager nav
+@inject HttpClient httpClient
+<MudCard>
+    <MudCardHeader><MudButton Variant="Variant.Outlined" Href="/" Color="Color.Primary">Add New</MudButton></MudCardHeader>
+
+<MudTable Items="@users" FixedHeader="@fixed_header" >
+    <HeaderContent>
+        <MudTh>Userid</MudTh>
+        <MudTh>Name</MudTh>
+        <MudTh>Email</MudTh>
+        <MudTh>Mobile</MudTh>
+        <MudTh>Address</MudTh>
+    </HeaderContent>
+    <RowTemplate>
+        <MudTd DataLabel="Nr">@context.Userid</MudTd>
+        <MudTd DataLabel="Sign">@context.Username</MudTd>
+        <MudTd DataLabel="Name">@context.Emailid</MudTd>
+        <MudTd DataLabel="Position">@context.MobileNo</MudTd>
+        <MudTd DataLabel="Molar mass">@context.Address</MudTd>
+    </RowTemplate>
+    
+    <PagerContent>
+        <MudTablePager PageSizeOptions="new int[]{10,20,50, 100}" />
+    </PagerContent>
+</MudTable>
+</MudCard>
+
+
+@code {
+    bool fixed_header = true;
+
+    private IEnumerable<User> users = new List<User>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        users = await httpClient.GetFromJsonAsync<List<User>>("api/user");
+    }
+}

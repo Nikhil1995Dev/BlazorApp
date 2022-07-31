@@ -1,0 +1,64 @@
+﻿@page "/register"
+@using System.ComponentModel.DataAnnotations
+@using BlazorApp.Shared.Models
+@inject HttpClient httpClient
+@inject NavigationManager navigation
+
+<EditForm Model="@model" OnValidSubmit="OnValidSubmit">
+<DataAnnotationsValidator/>
+<MudGrid>
+    <MudItem xs="12" sm="7">
+        <MudCard>
+            <MudCardContent>
+                <MudTextField Label="Name" HelperText="Max. 8 characters"
+                              @bind-Value="model.Username" For="@(() => model.Username)"/>
+                <MudTextField Label="Email" Class="mt-3"
+                              @bind-Value="model.Emailid" For="@(() => model.Emailid)" InputType="InputType.Email"/>
+                                              <MudTextField Label="Mobile No" Class="mt-3"
+                              @bind-Value="model.MobileNo" For="@(() => model.MobileNo)"InputType="InputType.Telephone"/>
+                                              <MudTextField Label="Address" Class="mt-3"
+                              @bind-Value="model.Address" For="@(() => model.Address)" InputType="InputType.Text"/>
+                <MudTextField Label="Password" HelperText="Choose a strong password" Class="mt-3"
+                              @bind-Value="model.Password" For="@(() => model.Password)" InputType="InputType.Password"/>
+                <MudTextField Label="Password" HelperText="Repeat the password" Class="mt-3"
+                              @bind-Value="model.ConfirmPassword" For="@(() => model.ConfirmPassword)" InputType="InputType.Password"/>
+            </MudCardContent>
+            <MudCardActions>
+                <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto">Register</MudButton>
+            </MudCardActions>
+        </MudCard>
+    </MudItem>
+    <MudItem xs="12" sm="5">
+        <MudPaper Class="pa-4 mud-height-full">
+            <MudText Typo="Typo.subtitle2">Validation Summary</MudText>
+            @if (success)
+            {
+                <MudText Color="Color.Success">Success</MudText>
+            }
+            else
+            {
+                <MudText Color="@Color.Error">
+                    <ValidationSummary />
+                </MudText>
+            }
+        </MudPaper>
+    </MudItem>
+
+</MudGrid>
+</EditForm>
+@code {
+    User model = new User();
+    bool success;
+    private async void OnValidSubmit(EditContext context)
+    {
+        var res= await this.httpClient.PostAsJsonAsync<User>("api/user", model);
+        if(res.IsSuccessStatusCode)
+        {
+            navigation.NavigateTo("/users");
+              success = true;
+        StateHasChanged();
+        }
+      
+    }
+
+}
